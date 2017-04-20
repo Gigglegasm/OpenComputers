@@ -2,21 +2,38 @@ local comp = require("component")
 local serial = require("serialization")
 local fs = require("filesystem")
 local selected = 1
-
-fs.makeDirectory("/usr/local/enhancedportals/")
-
-local file = io.open("usr/local/enhancedportals/portalbook.tbl","r")
+local bookAdr = "usr/local/enhancedportals/portalbook.tbl"
 local portals
-if file ~= nil then
-	local content = file:read("*all")
-	if content ~= "" then
-		portals = serial.unserialize(contents)
-	else
-		portals = {}
+local term = require( "term" )
+fs.makeDirectory( "/usr/local/enhancedportals/" )
+
+local function loadPortals(  )
+	local file = io.open( bookAdr,"r" )
+	local x = file:read( "*all" )
+
+	if file ~= nil then
+		if x ~= "" then
+			return (serial.unserialize( x ))
+		else
+			return({})
+		end
 	end
+	file:close()	
+end
+
+local function savePortals(  )
+	local file = io.open( bookAdr, "w")
+
+	if file == nil then
+		error("Couldn't open file: ", bookAdr)
+	end
+	local x = serial.serialize( portals )
+	local result, msg = file:write( x )
 	file:close()
-else
-	portals = {}
+
+	if result == nil then
+		error (msg)
+	end
 end
 
 local function count ( table )
@@ -45,13 +62,26 @@ local function deleteEntry(  )
 	if portals[selected] ~= nil then
 		portals[selected] = nil
 	end
-	-- portals update event
-end
 
 local function addEntry( name, uid )
-	if selected == count(portals) + 1 then
-		table.insert(portals, {end})
-name
+	if selected == count( portals ) + 1 then
+		table.insert( portals, { name, uid })
+	end
+end
 
--- portals update event
+local function dial( uid )
+	local dd = comp.ep_dialing_device
+	dd.dial( uid )
+	os.sleep(2)
+	dd.terminate()
+end
 
+testApp(true)
+local function testApp( run )
+	portals = loadPortals()
+	savePortals()
+	dial("7-7-1") --mining age
+	print("working?")
+end
+
+ 
