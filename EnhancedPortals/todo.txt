@@ -1,0 +1,5 @@
+Everything
+phonebook
+phonebook updater
+ -add portal address if !exists
+ -add dialing addresses if !exists
